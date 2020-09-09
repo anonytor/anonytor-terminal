@@ -5,7 +5,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
-	"time"
 )
 
 const (
@@ -14,9 +13,9 @@ const (
 )
 
 type Conf struct {
-	RunMode  Mode     `json:"run_mode"`
+	RunMode  string   `json:"run_mode"`
 	Database Database `json:"database"`
-	Redis    Redis    `json:"redis"`
+	Api      Api      `json:"api"`
 	Control  Control  `json:"control"`
 }
 
@@ -37,15 +36,18 @@ type Control struct {
 	Addr string `json:"addr"`
 }
 
-type Redis struct {
-	Host        string        `json:"host"`
-	Password    string        `json:"password"`
-	MaxIdle     int           `json:"max_idle"`
-	MaxActive   int           `json:"max_active"`
-	IdleTimeout time.Duration `json:"idle_timeout"`
+type Api struct {
+	Addr string `json:"addr"`
 }
-type Mode string
 
+<<<<<<< HEAD
+=======
+type Redis struct {
+	Host     string `json:"host"`
+	Password string `json:"password"`
+}
+
+>>>>>>> 59c72b0258f581174f4fcca0e0a106b94a66eb99
 func InitConfig(path string) *Conf {
 	var conf Conf
 	f, err := os.Open(path)

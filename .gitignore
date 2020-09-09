@@ -19,3 +19,6 @@
 
 docs
 ../clients/go/test_socket
+config.json
+build
+db.sqlite3

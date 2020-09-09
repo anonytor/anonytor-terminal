@@ -28,5 +28,5 @@ func InitDatabase(conf config.Database) (db *gorm.DB) {
 }
 
 func MigrateAll(db *gorm.DB) {
-	db.AutoMigrate(&models.Student{})
+	db.AutoMigrate(&models.Config{}, &models.Connection{}, &models.Host{}, &models.Token{})
 }
