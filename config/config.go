@@ -46,7 +46,6 @@ type Redis struct {
 }
 type Mode string
 
-
 func InitConfig(path string) *Conf {
 	var conf Conf
 	f, err := os.Open(path)

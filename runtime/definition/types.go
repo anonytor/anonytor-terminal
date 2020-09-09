@@ -1,10 +1,10 @@
 package definition
 
-type Payload struct {
-	Cmd  int    `json:"cmd"`
-	UUID string `json:"uuid"`
-}
+import (
+	"net"
+)
 
-type HandlerFunc func()
-type HandlerMap map[int]HandlerFunc
+type HandleFunc func(conn net.Conn)
+
+type HandlersMap map[CmdType]HandleFunc
 type H map[string]interface{}

@@ -1,12 +1,12 @@
 package database
 
 import (
+	"anonytor-terminal/config"
+	"anonytor-terminal/database/models"
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	log "github.com/sirupsen/logrus"
-	"monitor-server-backend/config"
-	"monitor-server-backend/database/models"
 )
 
 // InitDatabase inits a database connection to mysql
