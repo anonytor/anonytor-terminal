@@ -40,11 +40,14 @@ type Api struct {
 	Addr string `json:"addr"`
 }
 
+<<<<<<< HEAD
+=======
 type Redis struct {
 	Host     string `json:"host"`
 	Password string `json:"password"`
 }
 
+>>>>>>> 59c72b0258f581174f4fcca0e0a106b94a66eb99
 func InitConfig(path string) *Conf {
 	var conf Conf
 	f, err := os.Open(path)
