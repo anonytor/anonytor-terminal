@@ -1,10 +1,10 @@
 package control
 
 import (
+	"anonytor-terminal/control/windows"
+	"anonytor-terminal/runtime/definition"
 	"github.com/imdario/mergo"
 	log "github.com/sirupsen/logrus"
-	"monitor-server-backend/control/windows"
-	"monitor-server-backend/runtime/definition"
 	"net"
 )
 

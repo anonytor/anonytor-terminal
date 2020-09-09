@@ -1,6 +1,6 @@
 package windows
 
-import . "monitor-server-backend/runtime/definition"
+import . "anonytor-terminal/runtime/definition"
 
 var (
 	Handlers = HandlerMap{

@@ -1,22 +1,21 @@
 package models
 
 import (
+	"anonytor-terminal/runtime/random"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
-	"monitor-server-backend/runtime/random"
 	"time"
 )
 
 type Host struct {
-	ID        string `gorm:"primaryKey"`
-	CreatedAt time.Time
-	Key       string
-	Name      string
-	Addr      string
-	IsNAT     bool
-	OSType    int
-	OSInfo    string
-	LastSeen  time.Time
+	ID        string    `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	Key       string    `json:"-"`
+	Name      string    `json:"name"`
+	Addr      string    `json:"addr"`
+	OSType    int       `json:"os_type"`
+	OSInfo    string    `json:"os_info"`
+	LastSeen  time.Time `json:"last_seen"`
 }
 
 func NewHost(db *gorm.DB, name string) *Host {

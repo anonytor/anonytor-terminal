@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"anonytor-terminal/runtime/definition"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -11,7 +12,7 @@ func Recovery() gin.HandlerFunc {
 			if err := recover(); err != nil {
 				// TODO: Log error
 				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-					"status": -1,
+					"status": definition.StatusServerError,
 				})
 				return
 			}

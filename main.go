@@ -1,10 +1,10 @@
 package main
 
 import (
-	"monitor-server-backend/config"
-	"monitor-server-backend/control"
-	"monitor-server-backend/database"
-	"monitor-server-backend/runtime/logger"
+	"anonytor-terminal/api"
+	"anonytor-terminal/config"
+	"anonytor-terminal/database"
+	"anonytor-terminal/runtime/logger"
 )
 
 const ConfigurationPath = "./config.json"
@@ -17,7 +17,11 @@ func main() {
 	// Init Database
 	db := database.InitDatabase(conf.Database)
 	// Init ServerSocket
-	socket := control.InitSocket(db, conf.Control.Addr)
+	//socket := control.InitSocket(db, conf.Control.Addr)
 	// start listening
-	go socket.ListenAndServe()
+	//go socket.ListenAndServe()
+	// Init server
+	apiServer := api.NewServer(conf.Api, db)
+	apiServer.Start()
+	select {}
 }

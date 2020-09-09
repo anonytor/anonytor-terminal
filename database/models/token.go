@@ -1,8 +1,8 @@
 package models
 
 import (
+	"anonytor-terminal/runtime/random"
 	"github.com/jinzhu/gorm"
-	"monitor-server-backend/runtime/random"
 	"time"
 )
 
@@ -11,10 +11,10 @@ const (
 )
 
 type Token struct {
-	ID        uint
-	CreatedAt time.Time
-	Token     string `gorm:"unique"`
-	ExpireAt  time.Time
+	ID        uint      `json:"-"`
+	CreatedAt time.Time `json:"created_at"`
+	Token     string    `gorm:"unique" json:"token"`
+	ExpiredAt time.Time `json:"expired_at"`
 }
 
 func CheckToken(db *gorm.DB, token string) bool {
@@ -26,7 +26,7 @@ func CheckToken(db *gorm.DB, token string) bool {
 	} else if v.Error != nil {
 		panic(v.Error)
 	}
-	if time.Now().After(t.ExpireAt) {
+	if time.Now().After(t.ExpiredAt) {
 		if v := tx.Delete(&t); v.Error != nil {
 			panic(v.Error)
 		}
@@ -40,8 +40,8 @@ func CheckToken(db *gorm.DB, token string) bool {
 
 func NewToken(db *gorm.DB, expiredAt time.Time) *Token {
 	token := Token{
-		Token:    random.String(TOKEN_LENGTH, random.AlphaNumeric),
-		ExpireAt: expiredAt,
+		Token:     random.String(TOKEN_LENGTH, random.AlphaNumeric),
+		ExpiredAt: expiredAt,
 	}
 	if v := db.Create(&token); v.Error != nil {
 		panic(v.Error)
@@ -56,7 +56,7 @@ func DeleteToken(db *gorm.DB, token string) {
 	if v := tx.Where("token = ?", token).First(&t); v.Error != nil {
 		panic(v.Error)
 	}
-	if v := tx.Delete(&tx); v.Error != nil {
+	if v := tx.Delete(&t); v.Error != nil {
 		panic(v.Error)
 	}
 	if v := tx.Commit(); v.Error != nil {

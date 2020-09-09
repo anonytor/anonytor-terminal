@@ -15,3 +15,5 @@
 # vendor/
 .idea
 config.json
+build
+db.sqlite3

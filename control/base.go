@@ -1,9 +1,9 @@
 package control
 
 import (
+	"anonytor-terminal/runtime/definition"
 	"encoding/json"
 	"fmt"
-	"monitor-server-backend/runtime/definition"
 	"net"
 )
 

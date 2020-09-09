@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"anonytor-terminal/runtime/definition"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -8,7 +9,7 @@ import (
 func Handler404() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-			"status": -1,
+			"status": definition.StatusNotFound,
 		})
 	}
 }

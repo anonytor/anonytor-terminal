@@ -1,4 +1,4 @@
-module monitor-server-backend
+module anonytor-terminal
 
 go 1.14
 

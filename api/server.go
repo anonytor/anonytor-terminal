@@ -1,21 +1,20 @@
 package api
 
 import (
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/redis"
+	"anonytor-terminal/api/handlers"
+	. "anonytor-terminal/api/middlewares"
+	"anonytor-terminal/config"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
-	. "monitor-server-backend/api/middlewares"
-	"monitor-server-backend/config"
 )
 
 type Server struct {
 	gin  *gin.Engine
 	db   *gorm.DB
-	conf config.Panel
+	conf config.Api
 }
 
-func NewServer(conf config.Panel, db *gorm.DB) *Server {
+func NewServer(conf config.Api, db *gorm.DB) *Server {
 	return &Server{
 		db:   db,
 		conf: conf,
@@ -24,14 +23,19 @@ func NewServer(conf config.Panel, db *gorm.DB) *Server {
 
 func (s *Server) init() {
 	s.gin = gin.New()
-	store, _ := redis.NewStore(10, "tcp", s.conf.Redis.Host, s.conf.Redis.Password)
 	s.gin.Use(gin.Logger())
 	s.gin.Use(Recovery())
-	s.gin.Use(sessions.Sessions("session", store))
 	s.gin.Use(SetDb(s.db))
-	s.gin.Use(CheckSession())
+	s.gin.Use(Cors())
+	s.gin.Use(Auth())
 	s.gin.NoMethod(Handler404())
 	s.gin.NoRoute(Handler404())
+	handlers.RegisterAgent(s.gin.Group("agent"))
+	handlers.RegisterConnection(s.gin.Group("connection"))
+	handlers.RegisterHost(s.gin.Group("host"))
+	handlers.RegisterInfo(s.gin.Group("info"))
+	handlers.RegisterPing(s.gin.Group("ping"))
+	handlers.RegisterToken(s.gin.Group("token"))
 }
 
 func (s *Server) Start() {

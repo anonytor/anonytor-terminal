@@ -6,11 +6,12 @@ import (
 )
 
 type Connection struct {
-	ID        uint
-	CreatedAt time.Time
-	Addr      string
-	Host      *Host `gorm:"foreignkey:HostID"`
-	HostID    string
+	ID        uint      `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	Addr      string    `json:"addr"`
+	Host      *Host     `gorm:"foreignkey:HostID" json:"-"`
+	HostID    string    `json:"host_id"`
+	Type      int       `json:"type"`
 }
 
 func NewConnection(db *gorm.DB, addr, hostId, key string) *Connection {

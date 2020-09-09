@@ -1,30 +1,69 @@
 package handlers
 
 import (
+	"anonytor-terminal/api/middlewares"
+	"anonytor-terminal/database/models"
+	"anonytor-terminal/runtime/definition"
 	"github.com/gin-gonic/gin"
-	"monitor-server-backend/api/middlewares"
-	"monitor-server-backend/database/models"
 	"net/http"
 )
+
+func RegisterHost(r *gin.RouterGroup) {
+	r.GET("", GetHostList())
+	r.GET(":id", GetHostDetail())
+	r.POST("", CreateHost())
+	r.DELETE(":id", DeleteHost())
+}
+
+func GetHostList() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		db := middlewares.GetDb(c)
+		var hosts []models.Host
+		if v := db.Order("created_at desc").Find(&hosts); v.Error != nil {
+			panic(v.Error)
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"status": definition.StatusOK,
+			"hosts":  hosts,
+		})
+	}
+}
+
+func GetHostDetail() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		db := middlewares.GetDb(c)
+		id := c.Param("id")
+		host := models.GetHostById(db, id)
+		if host == nil {
+			c.JSON(http.StatusNotFound, gin.H{
+				"status": definition.StatusNotFound,
+			})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"status": definition.StatusOK,
+			"host":   host,
+		})
+	}
+}
 
 func CreateHost() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		type req struct {
-			Name string
+			Name string `json:"name"`
 		}
 		var r req
 		err := c.ShouldBindJSON(&r)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"status": -1,
+				"status": definition.StatusBadRequest,
 			})
 		}
 		db := middlewares.GetDb(c)
 		host := models.NewHost(db, r.Name)
 		c.JSON(http.StatusOK, gin.H{
-			"status": 0,
+			"status": definition.StatusOK,
 			"id":     host.ID,
-			"key":    host.Key,
 		})
 	}
 }
@@ -37,7 +76,7 @@ func DeleteHost() gin.HandlerFunc {
 		host := models.GetHostById(tx, id)
 		if host == nil {
 			c.JSON(http.StatusNotFound, gin.H{
-				"status": -1,
+				"status": definition.StatusNotFound,
 			})
 			return
 		}
@@ -48,7 +87,7 @@ func DeleteHost() gin.HandlerFunc {
 			panic(v.Error)
 		}
 		c.JSON(http.StatusOK, gin.H{
-			"status": 0,
+			"status": definition.StatusOK,
 		})
 	}
 }

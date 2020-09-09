@@ -15,7 +15,7 @@ const (
 type Conf struct {
 	RunMode  string   `json:"run_mode"`
 	Database Database `json:"database"`
-	Panel    Panel    `json:"api"`
+	Api      Api      `json:"api"`
 	Control  Control  `json:"control"`
 }
 
@@ -36,9 +36,8 @@ type Control struct {
 	Addr string `json:"addr"`
 }
 
-type Panel struct {
-	Addr  string `json:"addr"`
-	Redis Redis  `json:"redis"`
+type Api struct {
+	Addr string `json:"addr"`
 }
 
 type Redis struct {
