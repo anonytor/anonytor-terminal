@@ -4,11 +4,10 @@
     "dialect": "sqlite3",
     "parameter": "db.sqlite3"
   },
-  "redis": {
-    "host": "127.0.0.1:6379",
-    "password": ""
+  "api": {
+    "addr": "0.0.0.0:8000"
   },
   "control": {
-    "addr": "127.0.0.1:8888"
+    "addr": "0.0.0.0:8888"
   }
 }

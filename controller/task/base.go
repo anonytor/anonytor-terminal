@@ -6,9 +6,9 @@ import (
 )
 
 type Interface interface {
-	GetCmdType() definition.CmdType
 	GetId() string
 	SetId(string)
+	GetCmdType() definition.CmdType
 	GetSerializedParam() string
 	// Lifetimes
 	OnTaskReceived()

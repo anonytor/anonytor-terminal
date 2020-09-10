@@ -8,11 +8,15 @@ import (
 
 type GetFileContentTask struct {
 	task.Base
-	path string
+	Path string
 }
 
 func (t *GetFileContentTask) GetCmdType() definition.CmdType {
 	return definition.GetFileContent
+}
+
+func (t *GetFileContentTask) GetSerializedParam() string {
+	return t.Path
 }
 
 func (t *GetFileContentTask) OnTransConnEstablished(r io.ReadWriter) {
@@ -22,7 +26,7 @@ func (t *GetFileContentTask) OnTransConnEstablished(r io.ReadWriter) {
 type UploadFileTask struct {
 	task.Base
 	targetPath string
-	size int
+	size       int
 }
 
 func NewUploadFileTask(path string, targetPath string) {
