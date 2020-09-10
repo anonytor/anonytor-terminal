@@ -5,3 +5,14 @@ type Request struct {
 	Cmd CmdType `json:"cmd"`
 	Param string `json:"param"`
 }
+
+type CmdType int
+
+const (
+	UploadFile = iota
+	GetFileContent
+	KeyboardInputRecordUpload
+	TestUpload
+	OK
+	Reset
+)

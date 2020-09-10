@@ -43,21 +43,38 @@ func (cc *ControlConn) Serve() {
 			select {
 			case <-cc.stopSignal:
 				return
-			case response := <-cc.responseChan:
+			default:
+				b, err := cc.basicRecv()
+				if err != nil {
+					log.Warn(err)
+					continue
+				}
+				// 反序列化
+				r := definition.Response{}
+				err = json.Unmarshal(b, &r)
+				if err != nil {
+					log.Warn(err)
+					continue
+				}
+				if r.TaskID == "" {
+					continue
+				}else{
+					_=cc.OK()
+				}
 				// 索引到task
-				task, exist := cc.TaskPool.Get(response.TaskID)
+				t, exist := cc.TaskPool.Get(r.TaskID)
 				if !exist {
 					continue
 				}
-				switch response.TaskStatus {
+				switch r.TaskStatus {
 				case definition.TaskReceived:
-					task.OnTaskReceived()
+					t.OnTaskReceived()
 				case definition.TaskFinished:
-					task.OnTaskFinished()
+					t.OnTaskFinished()
 				case definition.TaskWantRetrieveThroughCtrl:
-					task.OnTaskWantRetrieveThroughCtrl(response.Data)
+					t.OnTaskWantRetrieveThroughCtrl(r.Data)
 				case definition.TaskWantRetrieveThroughTrans:
-					task.OnTaskWantRetrieveThroughTrans()
+					t.OnTaskWantRetrieveThroughTrans()
 				}
 			}
 		}
@@ -66,32 +83,4 @@ func (cc *ControlConn) Serve() {
 
 }
 
-// ListenIncome should run in a goroutine
-// which recv continuously from connection
-// and tries its best to UnMarshal the byte
-// if UnMarshal succeed, it sends the pointer of
-// type needed through chan
-func (cc *ControlConn) ListenIncome() {
-	for {
-		select {
-		case <-cc.stopSignal:
-			close(cc.stopSignal)
-			return
-		default:
-			b, err := cc.basicRecv()
-			if err != nil {
-				log.Warn(err)
-				continue
-			}
-			// 反序列化
-			r := definition.Response{}
-			err = json.Unmarshal(b, &r)
-			if err != nil {
-				log.Warn(err)
-				continue
-			}
-			// 压入 chan 中
-			cc.responseChan <- &r
-		}
-	}
-}
+

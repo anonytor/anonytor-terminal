@@ -79,7 +79,7 @@ func (bc *BaseConn) RecvHandshake() (*definition.Handshake, error) {
 }
 func (bc *BaseConn) OK() error {
 	c := definition.Request{}
-	c.Cmd = definition.Confirm
+	c.Cmd = definition.OK
 	content, _ := json.Marshal(c)
 	err := bc.basicSend(content)
 	return err
