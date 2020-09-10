@@ -1,6 +1,7 @@
 package main
 
 import (
+	"anonytor-terminal/api"
 	"anonytor-terminal/config"
 	"anonytor-terminal/controller"
 	"anonytor-terminal/database"
@@ -23,5 +24,7 @@ func main() {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go ctrl.ListenAndServe()
+	server := api.NewServer(conf.Api, db, ctrl)
+	server.Start()
 	wg.Wait()
 }
