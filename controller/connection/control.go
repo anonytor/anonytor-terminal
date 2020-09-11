@@ -1,11 +1,12 @@
 package connection
 
 import (
+	"encoding/json"
+
+	log "github.com/sirupsen/logrus"
+
 	"anonytor-terminal/controller/task"
 	"anonytor-terminal/runtime/definition"
-	"encoding/json"
-	"errors"
-	log "github.com/sirupsen/logrus"
 )
 
 type ControlConn struct {
@@ -52,12 +53,13 @@ func (cc *ControlConn) Serve() {
 			default:
 				b, err := cc.basicRecv()
 				if err != nil {
-					log.Warn(err)
-					if !errors.Is(err, definition.TimeOutError){
+					if err != definition.TimeOutError {
 						log.Warn("control connection is totally broken, exit")
 						cc.stopSignal <- struct{}{}
 						cc.reportBrokenChan <- cc.HostID
+						break
 					}
+					log.Warn(err)
 					continue
 				}
 				// 反序列化
@@ -81,9 +83,7 @@ func (cc *ControlConn) Serve() {
 				case definition.TaskReceived:
 					t.OnTaskReceived()
 				case definition.TaskFinished:
-					t.OnTaskFinished()
-				case definition.TaskWantRetrieveThroughCtrl:
-					t.OnTaskWantRetrieveThroughCtrl(r.Data)
+					t.OnTaskFinished(r.Data)
 				case definition.TaskWantRetrieveThroughTrans:
 					t.OnTaskWantRetrieveThroughTrans()
 				}

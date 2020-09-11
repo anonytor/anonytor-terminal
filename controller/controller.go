@@ -5,6 +5,7 @@ import (
 	"anonytor-terminal/controller/task"
 	"anonytor-terminal/runtime/definition"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	log "github.com/sirupsen/logrus"
 	"net"
@@ -16,12 +17,9 @@ type Controller struct {
 	ctrlConnPool connection.CtrlConnPool
 	// TODO: 增加关闭 Controller 的功能
 	closeSignal definition.Signal
-
-
 }
 
 func InitController(db *gorm.DB, addr string) *Controller {
-	registerHandlers()
 	c := &Controller{}
 	c.db = db
 	c.bindAddr = addr
@@ -81,7 +79,7 @@ func (c *Controller) handleConnection(conn net.Conn) {
 		// Add to ControlPool
 		c.ctrlConnPool.Add(cc)
 		cc.Serve()
-		sendTask(c)
+		// sendTask(c)
 	} else if hs.Type == definition.TransferConn {
 		// check if its controlConnect exists
 		cc, exist := c.ctrlConnPool.Get(hs.HostID)
@@ -130,6 +128,7 @@ func (c *Controller) ExecuteTask(id string, task task.Interface) error {
 	if !exist {
 		return definition.NoSuchConnError
 	}
+	task.SetId(uuid.New().String())
 	err := cc.SendTask(task)
 	if err != nil {
 		log.Warn(err)
@@ -145,4 +144,16 @@ func (c *Controller) GetControlConnections()[]*connection.ControlConn{
 func (c *Controller) Close() {
 	c.closeSignal <- struct{}{}
 	c.ctrlConnPool.Close()
+}
+
+func (c *Controller) GetTask(hostId, taskId string) task.Interface {
+	cc, ok := c.ctrlConnPool.Get(hostId)
+	if !ok {
+		return nil
+	}
+	t, ok := cc.TaskPool.Get(taskId)
+	if !ok {
+		return nil
+	}
+	return t
 }

@@ -13,6 +13,7 @@ const (
 	GetFileContent
 	KeyboardInputRecordUpload
 	TestUpload
+	GetClipboard
 	OK
 	Reset
 	DefaultTask
