@@ -17,7 +17,7 @@ const (
 	TaskWantRetrieveThroughCtrl
 	TaskWantRetrieveThroughTrans
 	// 传输连接建立
-	TransConnEstablished
+	TaskTransConnEstablished
 	// 完成
 	TaskFinished
 

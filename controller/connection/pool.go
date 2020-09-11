@@ -6,47 +6,60 @@ import (
 )
 
 type CtrlConnPool struct {
-	ctrlConnMap map[string]*ControlConn
+	ctrlConnMap sync.Map
+	// 用于关闭 pool
 	closeSignal definition.Signal
-	sync.Mutex
+	// ControlConn 通过此通道向上层通报自己已损坏
+	CtrlConnBrokenSignal chan string
 }
 
 func NewCtrlPool() CtrlConnPool {
 	ccp := CtrlConnPool{}
-	ccp.ctrlConnMap = make(map[string]*ControlConn)
+	ccp.ctrlConnMap = sync.Map{}
+	ccp.CtrlConnBrokenSignal = make(chan string, DefaultBuffLen)
 	return ccp
 }
 func (ccp *CtrlConnPool) Add(pc *ControlConn) {
-	ccp.Lock()
-	{
-		ccp.ctrlConnMap[pc.HostID] = pc
-	}
-	ccp.Unlock()
+	ccp.ctrlConnMap.Store(pc.HostID, pc)
 }
 func (ccp *CtrlConnPool) Get(id string) (*ControlConn, bool) {
-	ccp.Lock()
-	defer ccp.Unlock()
-	cc, exist := ccp.ctrlConnMap[id]
-	return cc, exist
+	cc, exist := ccp.ctrlConnMap.Load(id)
+	if !exist {
+		return nil, false
+	}
+	return cc.(*ControlConn), true
 
 }
 func (ccp *CtrlConnPool) CloseConn(uuid string) {
-	ccp.Lock()
-	{
-		ccp.ctrlConnMap[uuid].Close()
-		delete(ccp.ctrlConnMap, uuid)
-	}
-	ccp.Unlock()
+	ccp.ctrlConnMap.Delete(uuid)
+
 }
 
 // Close closes the whole ctrlConnMap
 func (ccp *CtrlConnPool) Close() {
-	ccp.Lock()
-	{
-		for id, cc := range ccp.ctrlConnMap {
-			cc.Close()
-			delete(ccp.ctrlConnMap, id)
+	ccp.ctrlConnMap.Range(func(key, value interface{}) bool {
+		cc := value.(*ControlConn)
+		cc.Close()
+		return true
+	})
+}
+func (ccp *CtrlConnPool) ListenToBroken() {
+	go func() {
+		for {
+			select {
+			case <-ccp.closeSignal:
+				return
+			case HostID := <-ccp.CtrlConnBrokenSignal:
+				ccp.CloseConn(HostID)
+			}
 		}
-	}
-	ccp.Unlock()
+	}()
+}
+func (ccp *CtrlConnPool) GetConnections() []*ControlConn {
+	result := make([]*ControlConn, DefaultBuffLen)
+	ccp.ctrlConnMap.Range(func(key, value interface{}) bool {
+		result = append(result, value.(*ControlConn))
+		return true
+	})
+	return result
 }

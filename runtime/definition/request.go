@@ -15,4 +15,5 @@ const (
 	TestUpload
 	OK
 	Reset
+	DefaultTask
 )

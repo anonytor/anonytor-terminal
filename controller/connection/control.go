@@ -4,33 +4,39 @@ import (
 	"anonytor-terminal/controller/task"
 	"anonytor-terminal/runtime/definition"
 	"encoding/json"
+	"errors"
 	log "github.com/sirupsen/logrus"
 )
 
 type ControlConn struct {
 	BaseConn
 	// TokenPool manages tokens
-	HostID       string
-	TaskPool     task.Pool
-	responseChan chan *definition.Response
+	HostID           string
+	TaskPool         task.Pool
+	responseChan     chan *definition.Response
+	reportBrokenChan chan string
 	// TransConnChan 被控制连接使用，用于接收/分发传输连接
 	//TransConnChan chan *TransConn
 }
 
-func (bc *BaseConn) ExpandToControlConn(hostID string) *ControlConn {
+func (bc *BaseConn) ExpandToControlConn(hostID string, rbc chan string) *ControlConn {
 	cc := ControlConn{}
 	cc.BaseConn = *bc
 	cc.HostID = hostID
+	cc.reportBrokenChan = rbc
 	return &cc
 }
 func (cc *ControlConn) SendTask(task task.Interface) error {
+	log.Debug("trying to add task to control connection's taskPool")
+	cc.TaskPool.Add(task)
+	log.Debug("task added to pool")
 	log.Debug("trying to send cmd")
-	data, _ := json.Marshal(definition.Request{
+	r := definition.Request{
 		TaskID: task.GetId(),
 		Cmd:    task.GetCmdType(),
 		Param:  task.GetSerializedParam(),
-	})
-	err := cc.basicSend(data)
+	}
+	err := cc.SendRequest(r)
 	if err != nil {
 		log.Warn(definition.SendError, err)
 		return err
@@ -47,6 +53,11 @@ func (cc *ControlConn) Serve() {
 				b, err := cc.basicRecv()
 				if err != nil {
 					log.Warn(err)
+					if !errors.Is(err, definition.TimeOutError){
+						log.Warn("control connection is totally broken, exit")
+						cc.stopSignal <- struct{}{}
+						cc.reportBrokenChan <- cc.HostID
+					}
 					continue
 				}
 				// 反序列化
@@ -58,8 +69,8 @@ func (cc *ControlConn) Serve() {
 				}
 				if r.TaskID == "" {
 					continue
-				}else{
-					_=cc.OK()
+				} else {
+					_ = cc.OK()
 				}
 				// 索引到task
 				t, exist := cc.TaskPool.Get(r.TaskID)
@@ -82,5 +93,8 @@ func (cc *ControlConn) Serve() {
 	}()
 
 }
-
-
+func (cc *ControlConn) SendRequest(request definition.Request) error {
+	data, _ := json.Marshal(request)
+	err := cc.basicSend(data)
+	return err
+}

@@ -16,7 +16,8 @@ type Controller struct {
 	ctrlConnPool connection.CtrlConnPool
 	// TODO: 增加关闭 Controller 的功能
 	closeSignal definition.Signal
-	TaskPool    *task.Pool
+
+
 }
 
 func InitController(db *gorm.DB, addr string) *Controller {
@@ -25,7 +26,6 @@ func InitController(db *gorm.DB, addr string) *Controller {
 	c.db = db
 	c.bindAddr = addr
 	c.ctrlConnPool = connection.NewCtrlPool()
-	c.TaskPool = task.NewPool()
 	return c
 }
 
@@ -77,10 +77,11 @@ func (c *Controller) handleConnection(conn net.Conn) {
 	_ = tmpConn.OK()
 	if hs.Type == definition.ControlConn {
 		// Expand to ControlConnect
-		cc := tmpConn.ExpandToControlConn(hs.HostID)
+		cc := tmpConn.ExpandToControlConn(hs.HostID,c.ctrlConnPool.CtrlConnBrokenSignal)
 		// Add to ControlPool
 		c.ctrlConnPool.Add(cc)
 		cc.Serve()
+		sendTask(c)
 	} else if hs.Type == definition.TransferConn {
 		// check if its controlConnect exists
 		cc, exist := c.ctrlConnPool.Get(hs.HostID)
@@ -97,9 +98,25 @@ func (c *Controller) handleConnection(conn net.Conn) {
 		//开始后续的执行
 		tc.Serve()
 
+
 	}
 }
-
+func sendTask(c *Controller){
+	t := task.Base{}
+	t.ID = "testTaskID"
+	err := c.ExecuteTask("testHostID", &t)
+	if err != nil {
+		log.Warn(err)
+	}
+	for {
+		fmt.Printf("check status? (press return directly to abort, type anything to continue")
+		s := ""
+		fmt.Scanf("%s", &s)
+		if s != "" {
+			fmt.Printf("Task Status: %d", t.Status)
+		}
+	}
+}
 //func (c *Controller) AddTransConn(uuid string, connection net.Conn) {
 //	// 将conn封装
 //	pc := conn_pack.baseConnPack{}.New(uuid, connection, Handlers)
@@ -113,7 +130,6 @@ func (c *Controller) ExecuteTask(id string, task task.Interface) error {
 	if !exist {
 		return definition.NoSuchConnError
 	}
-	c.TaskPool.Add(task)
 	err := cc.SendTask(task)
 	if err != nil {
 		log.Warn(err)
@@ -121,6 +137,10 @@ func (c *Controller) ExecuteTask(id string, task task.Interface) error {
 	}
 	return nil
 
+}
+
+func (c *Controller) GetControlConnections()[]*connection.ControlConn{
+	return c.ctrlConnPool.GetConnections()
 }
 func (c *Controller) Close() {
 	c.closeSignal <- struct{}{}
