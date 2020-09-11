@@ -18,8 +18,8 @@ func GetConnectionList() gin.HandlerFunc {
 		id := c.Query("id")
 		connections := models.GetConnectionsByHostId(db, id)
 		c.JSON(http.StatusOK, gin.H{
-			"status":   definition.StatusOK,
-			"resource": connections,
+			"status":      definition.StatusOK,
+			"connections": connections,
 		})
 	}
 }

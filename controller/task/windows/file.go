@@ -25,8 +25,8 @@ func (t *GetFileContentTask) OnTransConnEstablished(r io.ReadWriter) {
 
 type UploadFileTask struct {
 	task.Base
-	targetPath string
-	size       int
+	TargetPath string
+	Size       int
 }
 
 func NewUploadFileTask(path string, targetPath string) {

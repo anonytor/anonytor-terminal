@@ -15,6 +15,7 @@ func NewPool() *Pool {
 
 func (p *Pool) Add(task Interface) {
 	task.SetId(genToken())
+	task.SetPool(p)
 	p.tasks.Store(task.GetId(), task)
 }
 
@@ -24,6 +25,10 @@ func (p *Pool) Get(id string) (Interface, bool) {
 		return nil, false
 	}
 	return tmp.(Interface), true
+}
+
+func (p *Pool) Remove(task Interface) {
+	p.tasks.Delete(task.GetId())
 }
 
 func genToken() string {

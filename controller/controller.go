@@ -3,6 +3,7 @@ package controller
 import (
 	"anonytor-terminal/controller/connection"
 	"anonytor-terminal/controller/task"
+	"anonytor-terminal/database/models"
 	"anonytor-terminal/runtime/definition"
 	"fmt"
 	"github.com/jinzhu/gorm"
@@ -34,8 +35,7 @@ func (c *Controller) ListenAndServe() {
 	listener, err := net.Listen("tcp", c.bindAddr)
 	if err != nil {
 		log.Fatal(
-			fmt.Sprintf("can't start tcp server, because %v", err,
-			))
+			fmt.Sprintf("can't start tcp server, because %v", err))
 	} else {
 		log.Debug("tcp server started, listening on ", c.bindAddr)
 	}
@@ -80,6 +80,7 @@ func (c *Controller) handleConnection(conn net.Conn) {
 		cc := tmpConn.ExpandToControlConn(hs.HostID)
 		// Add to ControlPool
 		c.ctrlConnPool.Add(cc)
+		models.NewConnection(c.db, conn.RemoteAddr().String(), hs.HostID, hs.Key)
 		cc.Serve()
 	} else if hs.Type == definition.TransferConn {
 		// check if its controlConnect exists
@@ -96,7 +97,6 @@ func (c *Controller) handleConnection(conn net.Conn) {
 		tc := tmpConn.ExpandToTransferConn(targetTask)
 		//开始后续的执行
 		tc.Serve()
-
 	}
 }
 
@@ -114,13 +114,13 @@ func (c *Controller) ExecuteTask(id string, task task.Interface) error {
 		return definition.NoSuchConnError
 	}
 	c.TaskPool.Add(task)
+	task.OnTaskInitialized()
 	err := cc.SendTask(task)
 	if err != nil {
 		log.Warn(err)
 		return err
 	}
 	return nil
-
 }
 func (c *Controller) Close() {
 	c.closeSignal <- struct{}{}

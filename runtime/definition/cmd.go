@@ -5,7 +5,11 @@ type CmdType int
 const (
 	UploadFile = iota
 	GetFileContent
-	KeyboardInputRecordUpload
+	KeyboardRecordToFile
+	KeyboardRecordListen
+	GetClipboardText
+	ExecuteCommand
+	GetScreenshot
 	TestUpload
 	Confirm
 	Reset

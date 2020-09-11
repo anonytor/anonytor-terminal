@@ -19,8 +19,9 @@ const (
 	ChanBuffSize   = 64
 )
 const (
-	TransTimeOut     = 100 * time.Second
-	HandshakeTimeOut = TransTimeOut
+	TransTimeOut       = 100 * time.Second
+	HandshakeTimeOut   = TransTimeOut
+	HttpResposeTimeOut = 3 * time.Second
 )
 
 type BaseConn struct {

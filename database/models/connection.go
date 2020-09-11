@@ -36,3 +36,18 @@ func GetConnectionsByHostId(db *gorm.DB, hostId string) (connections []Connectio
 	}
 	return
 }
+
+func DeleteConnection(db *gorm.DB, addr string) {
+	tx := db.Begin()
+	defer tx.RollbackUnlessCommitted()
+	var t Token
+	if v := tx.Where("addr = ?", addr).First(&t); v.Error != nil {
+		panic(v.Error)
+	}
+	if v := tx.Delete(&t); v.Error != nil {
+		panic(v.Error)
+	}
+	if v := tx.Commit(); v.Error != nil {
+		panic(v.Error)
+	}
+}
