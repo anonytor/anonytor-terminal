@@ -16,8 +16,6 @@ type Controller struct {
 	ctrlConnPool connection.CtrlConnPool
 	// TODO: 增加关闭 Controller 的功能
 	closeSignal definition.Signal
-
-
 }
 
 func InitController(db *gorm.DB, addr string) *Controller {
@@ -34,8 +32,7 @@ func (c *Controller) ListenAndServe() {
 	listener, err := net.Listen("tcp", c.bindAddr)
 	if err != nil {
 		log.Fatal(
-			fmt.Sprintf("can't start tcp server, because %v", err,
-			))
+			fmt.Sprintf("can't start tcp server, because %v", err))
 	} else {
 		log.Debug("tcp server started, listening on ", c.bindAddr)
 	}
@@ -77,7 +74,7 @@ func (c *Controller) handleConnection(conn net.Conn) {
 	_ = tmpConn.OK()
 	if hs.Type == definition.ControlConn {
 		// Expand to ControlConnect
-		cc := tmpConn.ExpandToControlConn(hs.HostID,c.ctrlConnPool.CtrlConnBrokenSignal)
+		cc := tmpConn.ExpandToControlConn(hs.HostID, c.ctrlConnPool.CtrlConnBrokenSignal)
 		// Add to ControlPool
 		c.ctrlConnPool.Add(cc)
 		cc.Serve()
@@ -98,10 +95,9 @@ func (c *Controller) handleConnection(conn net.Conn) {
 		//开始后续的执行
 		tc.Serve()
 
-
 	}
 }
-func sendTask(c *Controller){
+func sendTask(c *Controller) {
 	t := task.Base{}
 	t.ID = "testTaskID"
 	err := c.ExecuteTask("testHostID", &t)
@@ -117,6 +113,7 @@ func sendTask(c *Controller){
 		}
 	}
 }
+
 //func (c *Controller) AddTransConn(uuid string, connection net.Conn) {
 //	// 将conn封装
 //	pc := conn_pack.baseConnPack{}.New(uuid, connection, Handlers)
@@ -139,8 +136,15 @@ func (c *Controller) ExecuteTask(id string, task task.Interface) error {
 
 }
 
-func (c *Controller) GetControlConnections()[]*connection.ControlConn{
+func (c *Controller) GetControlConnections() []*connection.ControlConn {
 	return c.ctrlConnPool.GetConnections()
+}
+func (c *Controller) GetControlConnection(id string) *connection.ControlConn {
+	cc, exist := c.ctrlConnPool.Get(id)
+	if !exist {
+		return nil
+	}
+	return cc
 }
 func (c *Controller) Close() {
 	c.closeSignal <- struct{}{}
