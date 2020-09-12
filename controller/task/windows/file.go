@@ -11,7 +11,7 @@ type GetFileContentTask struct {
 	Path string
 }
 
-func (t *GetFileContentTask) GetCmdType() definition.CmdType {
+func (t *GetFileContentTask) GetCmdType() definition.Cmd {
 	return definition.GetFileContent
 }
 
@@ -33,7 +33,7 @@ func NewUploadFileTask(path string, targetPath string) {
 	// TODO: 读取文件信息（大小）
 }
 
-func (t *UploadFileTask) GetCmdType() definition.CmdType {
+func (t *UploadFileTask) GetCmdType() definition.Cmd {
 	return definition.GetFileContent
 }
 

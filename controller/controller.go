@@ -1,14 +1,17 @@
 package controller
 
 import (
-	"anonytor-terminal/controller/connection"
-	"anonytor-terminal/controller/task"
-	"anonytor-terminal/runtime/definition"
 	"fmt"
+	"net"
+
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	log "github.com/sirupsen/logrus"
-	"net"
+
+	"anonytor-terminal/controller/connection"
+	"anonytor-terminal/controller/task"
+	"anonytor-terminal/database/models"
+	"anonytor-terminal/runtime/definition"
 )
 
 type Controller struct {
@@ -32,8 +35,7 @@ func (c *Controller) ListenAndServe() {
 	listener, err := net.Listen("tcp", c.bindAddr)
 	if err != nil {
 		log.Fatal(
-			fmt.Sprintf("can't start tcp server, because %v", err,
-			))
+			fmt.Sprintf("can't start tcp server, because %v", err))
 	} else {
 		log.Debug("tcp server started, listening on ", c.bindAddr)
 	}
@@ -63,7 +65,7 @@ func (c *Controller) ListenAndServe() {
 func (c *Controller) handleConnection(conn net.Conn) {
 	//1. 接收握手数据
 	// 		实例化一个临时的 connection
-	tmpConn := connection.NewBaseConn(conn)
+	tmpConn := connection.NewBaseConn(conn, c.db)
 	tmpConn.Serve()
 	// 		接收握手数据
 	hs, err := tmpConn.RecvHandshake()
@@ -72,14 +74,19 @@ func (c *Controller) handleConnection(conn net.Conn) {
 		tmpConn.Reset()
 		return
 	}
+	cct := models.NewConnection(c.db, conn.RemoteAddr().String(), hs.HostID, hs.Key, int(hs.Type))
+	if cct == nil {
+		log.Warn("handshake validation failed with client: ", err)
+		tmpConn.Reset()
+		return
+	}
 	_ = tmpConn.OK()
 	if hs.Type == definition.ControlConn {
 		// Expand to ControlConnect
-		cc := tmpConn.ExpandToControlConn(hs.HostID,c.ctrlConnPool.CtrlConnBrokenSignal)
+		cc := tmpConn.ExpandToControlConn(hs.HostID, c.ctrlConnPool.CtrlConnBrokenSignal)
 		// Add to ControlPool
 		c.ctrlConnPool.Add(cc)
 		cc.Serve()
-		// sendTask(c)
 	} else if hs.Type == definition.TransferConn {
 		// check if its controlConnect exists
 		cc, exist := c.ctrlConnPool.Get(hs.HostID)
@@ -95,11 +102,9 @@ func (c *Controller) handleConnection(conn net.Conn) {
 		tc := tmpConn.ExpandToTransferConn(targetTask)
 		//开始后续的执行
 		tc.Serve()
-
-
 	}
 }
-func sendTask(c *Controller){
+func sendTask(c *Controller) {
 	t := task.Base{}
 	t.ID = "testTaskID"
 	err := c.ExecuteTask("testHostID", &t)
@@ -115,6 +120,7 @@ func sendTask(c *Controller){
 		}
 	}
 }
+
 //func (c *Controller) AddTransConn(uuid string, connection net.Conn) {
 //	// 将conn封装
 //	pc := conn_pack.baseConnPack{}.New(uuid, connection, Handlers)
@@ -138,7 +144,7 @@ func (c *Controller) ExecuteTask(id string, task task.Interface) error {
 
 }
 
-func (c *Controller) GetControlConnections()[]*connection.ControlConn{
+func (c *Controller) GetControlConnections() []*connection.ControlConn {
 	return c.ctrlConnPool.GetConnections()
 }
 func (c *Controller) Close() {

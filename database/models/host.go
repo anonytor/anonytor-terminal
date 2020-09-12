@@ -1,10 +1,12 @@
 package models
 
 import (
-	"anonytor-terminal/runtime/random"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
-	"time"
+
+	"anonytor-terminal/runtime/random"
 )
 
 type Host struct {
@@ -13,16 +15,17 @@ type Host struct {
 	Key       string    `json:"-"`
 	Name      string    `json:"name"`
 	Addr      string    `json:"addr"`
-	OSType    int       `json:"os_type"`
-	OSInfo    string    `json:"os_info"`
+	OS        int       `json:"os"`
 	LastSeen  time.Time `json:"last_seen"`
+	Status    int       `json:"status"`
 }
 
-func NewHost(db *gorm.DB, name string) *Host {
+func NewHost(db *gorm.DB, name string, OS int) *Host {
 	host := Host{
 		ID:   uuid.New().String(),
 		Key:  random.String(32, random.AlphaNumeric+random.Symbol),
 		Name: name,
+		OS:   OS,
 	}
 	if v := db.Create(&host); v.Error != nil {
 		panic(v.Error)

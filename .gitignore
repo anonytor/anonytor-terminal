@@ -22,3 +22,4 @@ docs
 config.json
 build
 db.sqlite3
+static

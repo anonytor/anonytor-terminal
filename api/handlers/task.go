@@ -20,10 +20,10 @@ func RegisterTask(r *gin.RouterGroup) {
 func CreateTask() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		type req struct {
-			OS      int                    `json:"os"`
-			ID      string                 `json:"id"`
-			CmdType definition.CmdType     `json:"cmdType"`
-			Param  string `json:"param"`
+			OS     int                    `json:"os"`
+			ID     string                 `json:"id"`
+			Cmd    definition.Cmd         `json:"cmd"`
+			Params map[string]interface{} `json:"params"`
 		}
 		var r req
 		err := c.ShouldBindJSON(&r)
@@ -36,9 +36,9 @@ func CreateTask() gin.HandlerFunc {
 		var t task.Interface
 		ctrl := middlewares.GetController(c)
 		if r.OS == definition.Windows {
-			switch r.CmdType {
+			switch r.Cmd {
 			case definition.GetFileContent:
-				t = &windows.GetFileContentTask{Path: r.Param}
+				t = &windows.GetFileContentTask{Path: r.Params["path"].(string)}
 				err := ctrl.ExecuteTask(r.ID, t)
 				if err != nil {
 					panic(err)
@@ -51,7 +51,7 @@ func CreateTask() gin.HandlerFunc {
 				}
 			}
 		} else if r.OS == definition.Android {
-			switch r.CmdType {
+			switch r.Cmd {
 			case definition.GetClipboard:
 				t = &android.GetClipboardTask{}
 				err := ctrl.ExecuteTask(r.ID, t)
@@ -68,15 +68,15 @@ func CreateTask() gin.HandlerFunc {
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"status": definition.StatusOK,
-			"id": t.GetId(),
+			"id":     t.GetId(),
 		})
 	}
 }
 
 func GetTaskDetail() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		hostId := c.Query("host_id")
-		taskId := c.Query("task_id")
+		hostId := c.Query("hostId")
+		taskId := c.Query("taskId")
 		ctrl := middlewares.GetController(c)
 		t := ctrl.GetTask(hostId, taskId)
 		if t == nil {
@@ -86,9 +86,10 @@ func GetTaskDetail() gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{
-			"status": definition.StatusOK,
+			"status":      definition.StatusOK,
 			"task_status": t.GetStatus(),
-			"result": t.GetResult(),
+			"result":      t.GetResult(),
+			"cmd":         t.GetCmdType(),
 		})
 	}
 }

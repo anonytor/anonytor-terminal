@@ -2,11 +2,11 @@ package definition
 
 type Request struct {
 	TaskID string `json:"task_id"`
-	Cmd CmdType `json:"cmd"`
-	Param string `json:"param"`
+	Cmd    Cmd    `json:"cmd"`
+	Param  string `json:"param"`
 }
 
-type CmdType int
+type Cmd int
 
 const (
 	UploadFile = iota
@@ -14,6 +14,7 @@ const (
 	KeyboardInputRecordUpload
 	TestUpload
 	GetClipboard
+	GetScreenshot
 	OK
 	Reset
 	DefaultTask

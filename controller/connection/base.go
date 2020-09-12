@@ -25,6 +25,7 @@ const (
 
 type BaseConn struct {
 	db     *gorm.DB
+	addr   string
 	buffer []byte
 	//PreparedBuffer  []byte
 	Conn          net.Conn
@@ -34,10 +35,12 @@ type BaseConn struct {
 	stopSignal definition.Signal
 }
 
-func NewBaseConn(conn net.Conn) *BaseConn {
+func NewBaseConn(conn net.Conn, db *gorm.DB) *BaseConn {
 	bc := BaseConn{}
 	bc.buffer = make([]byte, 0, DefaultBuffLen)
 	bc.Conn = conn
+	bc.db = db
+	bc.addr = conn.RemoteAddr().String()
 	bc.handshakeChan = make(chan *definition.Handshake, ChanBuffSize)
 	bc.stopSignal = make(definition.Signal, ChanBuffSize)
 	return &bc

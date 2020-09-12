@@ -2,10 +2,13 @@ package connection
 
 import (
 	"encoding/json"
+	"time"
 
+	"github.com/jinzhu/gorm"
 	log "github.com/sirupsen/logrus"
 
 	"anonytor-terminal/controller/task"
+	"anonytor-terminal/database/models"
 	"anonytor-terminal/runtime/definition"
 )
 
@@ -54,13 +57,36 @@ func (cc *ControlConn) Serve() {
 				b, err := cc.basicRecv()
 				if err != nil {
 					if err != definition.TimeOutError {
+						var cct models.Connection
+						if v := cc.db.Where("addr = ? and host_id = ?", cc.addr, cc.HostID).First(&cct); v.Error == nil {
+							if v := cc.db.Delete(&cct); v.Error != nil {
+								panic(v.Error)
+							}
+						} else if !gorm.IsRecordNotFoundError(v.Error) {
+							panic(v.Error)
+						}
+						var count int
+						if v := cc.db.Model(&models.Connection{}).Where("host_id = ? and type = 0", cc.HostID).Count(&count); v.Error != nil {
+							panic(v.Error)
+						}
+						if count == 0 {
+							host := models.GetHostById(cc.db, cc.HostID)
+							host.Status = 0
+							if v := cc.db.Save(host); v.Error != nil {
+								panic(v.Error)
+							}
+						}
 						log.Warn("control connection is totally broken, exit")
 						cc.stopSignal <- struct{}{}
 						cc.reportBrokenChan <- cc.HostID
 						break
 					}
-					log.Warn(err)
 					continue
+				}
+				host := models.GetHostById(cc.db, cc.HostID)
+				host.LastSeen = time.Now()
+				if v := cc.db.Save(host); v.Error != nil {
+					panic(v.Error)
 				}
 				// 反序列化
 				r := definition.Response{}

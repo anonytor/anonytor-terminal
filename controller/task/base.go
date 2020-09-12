@@ -11,7 +11,7 @@ type Interface interface {
 	SetId(string)
 	GetStatus() definition.TaskStatus
 	GetResult() string
-	GetCmdType() definition.CmdType
+	GetCmdType() definition.Cmd
 	GetSerializedParam() string
 	// Lifetimes
 	OnTaskReceived()
@@ -23,8 +23,8 @@ type Interface interface {
 type Base struct {
 	Interface
 	ID     string
-	Cmd definition.CmdType
-	Param string
+	Cmd    definition.Cmd
+	Param  string
 	Status definition.TaskStatus
 }
 
@@ -44,7 +44,7 @@ func (bt *Base) GetResult() string {
 	return "Nothing here"
 }
 
-func (bt *Base) GetCmdType() definition.CmdType {
+func (bt *Base) GetCmdType() definition.Cmd {
 	return bt.Cmd
 }
 func (bt *Base) GetSerializedParam() string {

@@ -26,6 +26,7 @@ func NewServer(conf config.Api, db *gorm.DB, ctrl *controller.Controller) *Serve
 
 func (s *Server) init() {
 	s.gin = gin.New()
+	s.gin.Static("static", "./static")
 	s.gin.Use(gin.Logger())
 	s.gin.Use(Recovery())
 	s.gin.Use(SetDb(s.db))

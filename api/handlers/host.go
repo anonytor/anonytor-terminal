@@ -51,6 +51,7 @@ func CreateHost() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		type req struct {
 			Name string `json:"name"`
+			OS   int    `json:"os"`
 		}
 		var r req
 		err := c.ShouldBindJSON(&r)
@@ -60,7 +61,7 @@ func CreateHost() gin.HandlerFunc {
 			})
 		}
 		db := middlewares.GetDb(c)
-		host := models.NewHost(db, r.Name)
+		host := models.NewHost(db, r.Name, r.OS)
 		c.JSON(http.StatusOK, gin.H{
 			"status": definition.StatusOK,
 			"id":     host.ID,

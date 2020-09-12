@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+
 	"anonytor-terminal/api/middlewares"
 	"anonytor-terminal/database/models"
 	"anonytor-terminal/runtime/definition"
-	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 func RegisterConnection(r *gin.RouterGroup) {
@@ -18,8 +20,8 @@ func GetConnectionList() gin.HandlerFunc {
 		id := c.Query("id")
 		connections := models.GetConnectionsByHostId(db, id)
 		c.JSON(http.StatusOK, gin.H{
-			"status":   definition.StatusOK,
-			"resource": connections,
+			"status":      definition.StatusOK,
+			"connections": connections,
 		})
 	}
 }
